@@ -94,7 +94,7 @@ static int __init uninterruptible_sleep_init(void) {
     }
 
 
-    printk(KERN_INFO "Monitoring started!\n");
+    //printk(KERN_INFO "Monitoring started!\n"); //for debugging reasons
     return 0;  // Returns 0 if the thread was successfully created.
 }
 
