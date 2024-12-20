@@ -1,4 +1,3 @@
-//para fazer: esconder /etc/modules
 
 #include <linux/init.h>         // Module initialization functions
 #include <linux/module.h>       // Kernel module functions.
