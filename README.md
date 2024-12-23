@@ -22,5 +22,5 @@ rmmod codeine
 ``` 
 
 <h1>To do</h1>
-<li>Hide TCP connections</li>
+<li>Hide TCP connections <b>(50% done)</b></li>
 <li>Hook write syscall</li>
