@@ -13,6 +13,7 @@ Tested on kernel version:
 <li>6.x</li>
 <li>5.15</li>
 
+
 <h1>Install</h1>
 
  ```
@@ -28,5 +29,5 @@ rmmod codeine
 ``` 
 
 <h1>To do</h1>
-<li>Hide TCP connections <b>(50% done)</b></li>
+<li><del>Hide TCP connections</del></li>
 <li>Hook write syscall</li>
