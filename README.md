@@ -9,6 +9,10 @@ Y8b  d8 `8b  d8' 88  .8D 88.       .88.   88  V888 88.
 
 Codeine is a Linux LKM Rootkit aimed at ensuring the attacker’s persistence through a reverse shell and remaining completely hidden in the system.
 
+Tested on kernel version:
+<li>6.x</li>
+<li>5.15</li>
+
 <h1>Install</h1>
 
  ```
