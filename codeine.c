@@ -7,7 +7,7 @@
 #include "ftrace_helper.h"
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("GPL");
+MODULE_AUTHOR("Diego Tellaroli");
 MODULE_DESCRIPTION("GPL");
 
 enum {
