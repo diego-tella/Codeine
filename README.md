@@ -30,4 +30,4 @@ rmmod codeine
 
 <h1>To do</h1>
 <li><del>Hide TCP connections</del></li>
-<li>Hook write syscall</li>
+<li>Hide PIDs</li>
