@@ -32,5 +32,5 @@ rmmod codeine
 <h1>To do</h1>
 <li><del>Hide TCP connections</del></li>
 <li>Hide PIDs</li>
-<li>Create config file with network information</li>
+<li><del>Create config file with network information</del></li>
 
